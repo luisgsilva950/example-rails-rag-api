@@ -55,7 +55,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -85,6 +85,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          GEMINI_API_KEY: test_key
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: bin/rails db:test:prepare && bundle exec rspec
