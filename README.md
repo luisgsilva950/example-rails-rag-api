@@ -1,5 +1,8 @@
 # RAG API — Retrieval-Augmented Generation with Rails
 
+[![CI](https://github.com/luisgsilva950/example-rails-rag-api/actions/workflows/ci.yml/badge.svg)](https://github.com/luisgsilva950/example-rails-rag-api/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/luisgsilva950/example-rails-rag-api/graph/badge.svg)](https://codecov.io/gh/luisgsilva950/example-rails-rag-api)
+
 A Ruby on Rails API that implements **RAG (Retrieval-Augmented Generation)** using Google Gemini as the LLM and PostgreSQL with **pgvector** for both relational data and vector similarity search.
 
 ## Stack

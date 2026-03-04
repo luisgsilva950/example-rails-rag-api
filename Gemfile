@@ -62,4 +62,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "faker"
   gem "webmock"
+
+  # Coverage
+  gem "simplecov", require: false
 end
