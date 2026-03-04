@@ -35,10 +35,6 @@ module Rag
     def extract_text(file_path)
       case File.extname(file_path).downcase
       when ".pdf" then extract_pdf(file_path)
-
-
-
-
       else File.read(file_path)
       end
     end
