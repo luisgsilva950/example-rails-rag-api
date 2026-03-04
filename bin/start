@@ -90,9 +90,13 @@ log "Preparing database..."
 bin/rails db:prepare
 
 # ----------------------------------------------------------
-# 6. Start the Rails server
+# 6. Start the Rails server with Solid Queue
 # ----------------------------------------------------------
 log "=================================================="
 log "  RAG API is starting on http://localhost:3000"
+log "  Solid Queue is running inside Puma"
 log "=================================================="
+# Required on macOS to avoid fork() crash with Objective-C runtime
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+export SOLID_QUEUE_IN_PUMA=1
 exec bin/rails server "$@"

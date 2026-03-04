@@ -109,19 +109,29 @@ bundle install
 rails db:create db:migrate
 ```
 
-### 6. Start the server
+### 6. Start the server with Solid Queue
 
-**One command to rule them all** — starts Docker, waits for services, prepares the DB, and launches Rails:
+**One command to rule them all** — starts Docker, waits for services, prepares the DB, and launches Rails with Solid Queue:
 
 ```bash
 bin/start
 ```
 
-Or manually:
+Or start the Rails server with Solid Queue manually:
+
+```bash
+bin/dev
+```
+
+Both commands run Solid Queue as a Puma plugin (via `SOLID_QUEUE_IN_PUMA=1`), so background jobs are processed in the same process as the web server — no separate worker needed.
+
+If you only need the Rails server without background job processing:
 
 ```bash
 rails server
 ```
+
+> **Note:** Document ingestion (`POST /api/v1/ingestions`) requires Solid Queue to be running, since the ingestion pipeline runs as a background job.
 
 The API will be available at `http://localhost:3000`.
 

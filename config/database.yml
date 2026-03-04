@@ -22,15 +22,25 @@ default: &default
   port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
 
 development:
-  <<: *default
-  database: example_rails_rag_api_development
+  primary:
+    <<: *default
+    database: example_rails_rag_api_development
+  queue:
+    <<: *default
+    database: example_rails_rag_api_development_queue
+    migrations_paths: db/queue_migrate
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: example_rails_rag_api_test
+  primary:
+    <<: *default
+    database: example_rails_rag_api_test
+  queue:
+    <<: *default
+    database: example_rails_rag_api_test_queue
+    migrations_paths: db/queue_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

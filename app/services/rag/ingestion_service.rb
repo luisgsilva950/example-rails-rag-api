@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Rag
-  # Ingests documents (PDF, TXT, JSON) into PostgreSQL with pgvector embeddings.
+  # Ingests documents (PDF, TXT, JSON, MD) into PostgreSQL with pgvector embeddings.
   class IngestionService
     DEFAULT_CHUNK_SIZE = 1000
     DEFAULT_CHUNK_OVERLAP = 200
