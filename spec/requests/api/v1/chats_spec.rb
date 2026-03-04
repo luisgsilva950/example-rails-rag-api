@@ -9,8 +9,7 @@ RSpec.describe "Api::V1::Chats", type: :request do
     let(:chat_result) do
       {
         session_id: session_id,
-        answer: "Rails is a web application framework written in Ruby.",
-        sources_count: 3
+        answer: "Rails is a web application framework written in Ruby."
       }
     end
     let(:chat_service) { instance_double(Rag::ChatService) }
@@ -29,7 +28,6 @@ RSpec.describe "Api::V1::Chats", type: :request do
         json = JSON.parse(response.body)
         expect(json["session_id"]).to eq(session_id)
         expect(json["answer"]).to eq("Rails is a web application framework written in Ruby.")
-        expect(json["sources_count"]).to eq(3)
       end
 
       it "calls the chat service with correct parameters" do
