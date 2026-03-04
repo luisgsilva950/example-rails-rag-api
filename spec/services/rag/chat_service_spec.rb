@@ -4,26 +4,25 @@ require "rails_helper"
 
 RSpec.describe Rag::ChatService, type: :service do
   let(:llm) { instance_double(Langchain::LLM::GoogleGemini) }
-  let(:service) { described_class.new(llm: llm) }
+  let(:tool) { instance_double(Rag::DocumentSearchTool) }
+  let(:assistant) { instance_double(Langchain::Assistant) }
+  let(:service) { described_class.new(llm: llm, tools: [ tool ]) }
 
   let(:session_id) { SecureRandom.uuid }
   let(:question) { "What is Ruby on Rails?" }
-  let(:fake_embedding) { Array.new(3072) { rand(-1.0..1.0) } }
 
-  let(:embed_response) do
-    instance_double("Langchain::LLM::GoogleGeminiResponse", embedding: fake_embedding)
+  let(:final_message) do
+    instance_double(
+      "Langchain::Assistant::Messages::GoogleGeminiMessage",
+      content: "Rails is a web framework built with Ruby."
+    )
   end
-
-  let(:llm_response) do
-    instance_double("Langchain::LLM::GoogleGeminiResponse", chat_completion: "Rails is a web framework built with Ruby.")
-  end
-
-  let!(:doc1) { create(:document, content: "Ruby on Rails is a web framework written in Ruby.", embedding: fake_embedding) }
-  let!(:doc2) { create(:document, content: "Rails follows the MVC pattern.", embedding: fake_embedding) }
 
   before do
-    allow(llm).to receive(:embed).and_return(embed_response)
-    allow(llm).to receive(:chat).and_return(llm_response)
+    allow(Langchain::Assistant).to receive(:new).and_return(assistant)
+    allow(assistant).to receive(:add_message)
+    allow(assistant).to receive(:add_message_and_run!)
+    allow(assistant).to receive(:messages).and_return([ final_message ])
   end
 
   describe "#call" do
@@ -38,7 +37,6 @@ RSpec.describe Rag::ChatService, type: :service do
 
       expect(result[:answer]).to eq("Rails is a web framework built with Ruby.")
       expect(result[:session_id]).to eq(session_id)
-      expect(result[:sources_count]).to eq(2)
     end
 
     it "persists both user and assistant messages" do
@@ -52,21 +50,20 @@ RSpec.describe Rag::ChatService, type: :service do
       expect(messages.last.content).to eq("Rails is a web framework built with Ruby.")
     end
 
-    it "retrieves context from PostgreSQL via pgvector" do
+    it "creates assistant with tools and instructions" do
       service.call(session_id: session_id, question: question)
 
-      expect(llm).to have_received(:embed).with(text: question)
+      expect(Langchain::Assistant).to have_received(:new).with(
+        llm: llm,
+        tools: [ tool ],
+        instructions: described_class::SYSTEM_PROMPT
+      )
     end
 
-    it "includes context and correct roles in LLM request" do
+    it "sends the question to the assistant" do
       service.call(session_id: session_id, question: question)
 
-      expect(llm).to have_received(:chat) do |args|
-        expect(args[:system]).to include("[1]")
-        expect(args[:system]).to include("Ruby on Rails is a web framework")
-        roles = args[:messages].map { |m| m[:role] }
-        expect(roles).to all(be_in(%w[user model]))
-      end
+      expect(assistant).to have_received(:add_message_and_run!).with(content: question)
     end
 
     context "with existing conversation history" do
@@ -75,39 +72,12 @@ RSpec.describe Rag::ChatService, type: :service do
         create(:message, :assistant, session_id: session_id, content: "Hi! How can I help?")
       end
 
-      it "maps roles correctly and includes history" do
+      it "loads history with correct Gemini roles" do
         service.call(session_id: session_id, question: question)
 
-        expect(llm).to have_received(:chat) do |args|
-          messages = args[:messages]
-          expect(messages.size).to be >= 3
-          model_messages = messages.select { |m| m[:role] == "model" }
-          expect(model_messages).not_to be_empty
-        end
-      end
-    end
-
-    context "when pgvector search fails" do
-      before do
-        allow(llm).to receive(:embed).and_raise(StandardError, "Connection refused")
-      end
-
-      it "still generates a response with fallback context" do
-        result = service.call(session_id: session_id, question: question)
-
-        expect(result[:answer]).to be_present
-        expect(result[:sources_count]).to eq(0)
-        expect(llm).to have_received(:chat) do |args|
-          expect(args[:system]).to include("No relevant context found.")
-        end
-      end
-    end
-
-    context "with custom k parameter" do
-      it "limits the number of results" do
-        result = service.call(session_id: session_id, question: question, k: 1)
-
-        expect(result[:sources_count]).to be <= 1
+        expect(assistant).to have_received(:add_message).with(role: "user", content: "Hello")
+        expect(assistant).to have_received(:add_message).with(role: "model", content: "Hi! How can I help?")
+        expect(assistant).to have_received(:add_message).with(role: "user", content: question)
       end
     end
   end
