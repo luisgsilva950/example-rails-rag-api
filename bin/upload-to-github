@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_NAME="example-rails-rag-api"
+GITHUB_USER=$(gh api user --jq '.login' 2>/dev/null) || true
+
+if [ -z "$GITHUB_USER" ]; then
+  echo "Error: GitHub CLI (gh) not authenticated. Run 'gh auth login' first."
+  exit 1
+fi
+
+echo "Creating repository github.com/$GITHUB_USER/$REPO_NAME..."
+
+gh repo create "$REPO_NAME" --public --source=. --remote=origin --push 2>/dev/null || {
+  echo "Repository may already exist. Setting remote and pushing..."
+  git remote set-url origin "git@github.com:$GITHUB_USER/$REPO_NAME.git" 2>/dev/null ||
+    git remote add origin "git@github.com:$GITHUB_USER/$REPO_NAME.git"
+  git push -u origin main
+}
+
+echo "Done: https://github.com/$GITHUB_USER/$REPO_NAME"
