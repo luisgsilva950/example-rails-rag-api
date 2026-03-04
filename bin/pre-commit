@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.rb$' || true)
+
+[ -z "$STAGED_FILES" ] && exit 0
+
+echo "Running RuboCop on staged files..."
+bundle exec rubocop -A $STAGED_FILES
+
+git add $STAGED_FILES
