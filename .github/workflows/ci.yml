@@ -85,6 +85,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          QUEUE_DATABASE_URL: postgres://postgres:postgres@localhost:5432/example_rails_rag_api_test_queue
           GEMINI_API_KEY: test_key
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
